@@ -1,7 +1,8 @@
 /* 
-Calculate month on month + week on week user retention
-A user is considered to be active in a given period if 
-they enter at least 1 league.
+Stratifies customers into 3 tranches across each month:
+    - new
+    - retained
+    - returning
 */
 
 -- Set constant
@@ -27,28 +28,28 @@ user_activity AS (
 user_lags AS (
     SELECT  u.user,
             month,
-            LEAD(u.month, 1)
+            LAG(u.month, 1)
             OVER(PARTITION BY u.user ORDER BY u.month)
-            AS lead_month
+            AS lag_month
             FROM user_activity AS u
     ),
 -- Get time deltas between activities
 time_deltas AS (
     SELECT u.user,
            month,
-           lead_month,
-           lead_month - month AS delta
+           lag_month,
+           month - lag_month AS delta
            FROM user_lags AS u
     ),
 -- Generate customer state categorical column
 retention AS (
     SELECT t.user, 
         month, 
-        lead_month, 
+        lag_month, 
         delta,
-        CASE WHEN delta IS NULL THEN 'churned'
+        CASE WHEN delta IS NULL THEN 'new'
         WHEN delta = 1 THEN 'retained'
-        WHEN delta >= 2 THEN 'lagged'
+        WHEN delta >= 2 THEN 'returning'
         END AS cust_state
         FROM time_deltas AS t
     ),
@@ -63,12 +64,15 @@ full_dates AS (
 SELECT r.month,
        MIN(f.full_date) AS date,
        COUNT(DISTINCT r.user) AS num_users,
-       SUM(CASE WHEN cust_state = 'retained' THEN 1
-           ELSE 0 END)
-       AS num_retained,
+       SUM(CASE WHEN cust_state = 'new' THEN 1
+           ELSE 0 END)::DECIMAL / COUNT(DISTINCT r.user)
+       AS new,
        SUM(CASE WHEN cust_state = 'retained' THEN 1
            ELSE 0 END)::DECIMAL / COUNT(DISTINCT r.user)
-       AS retention_rate
+       AS retained,
+       SUM(CASE WHEN cust_state = 'returning' THEN 1
+           ELSE 0 END)::DECIMAL / COUNT(DISTINCT r.user)
+       AS returning
        FROM retention AS r
        INNER JOIN full_dates AS f
        ON r.month = f.month
