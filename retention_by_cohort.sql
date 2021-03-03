@@ -46,9 +46,17 @@ cohort_actives AS (
         LEFT JOIN acquisition_months as a
         ON u.user = a.user
         GROUP BY acquisition_month, retention_month
-    )
--- Gen retention figure
-SELECT s.acquisition_month,
+    ),
+-- Grab full month commencing dates
+full_dates AS (
+    SELECT month,
+           DATE_TRUNC('month', MIN(date)) AS full_date
+    FROM user_activity
+    GROUP BY month
+)
+-- Gen final table
+SELECT f.full_date,
+       s.acquisition_month,
        retention_month,
        num_acquired_users,
        num_cohort_actives,
@@ -57,4 +65,6 @@ SELECT s.acquisition_month,
        AS retention
        FROM cohort_sizes AS s
        LEFT JOIN cohort_actives AS a
-       ON s.acquisition_month = a.acquisition_month;
+       ON s.acquisition_month = a.acquisition_month
+       LEFT JOIN full_dates AS f
+       ON s.acquisition_month = f.month;
