@@ -60,7 +60,7 @@ full_dates AS (
     FROM user_activity
     GROUP BY month
 )
--- Calculate retention rate
+-- Calculate customer state
 SELECT r.month,
        MIN(f.full_date) AS date,
        COUNT(DISTINCT r.user) AS num_users,
