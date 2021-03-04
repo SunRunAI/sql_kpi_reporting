@@ -1,6 +1,8 @@
 /* 
-Grabs a random sample of user transactions who joined within a 
-certain time period. Allows for rudimentary scalable EDA.
+Grabs a random sample of user transactions 
+who joined within a certain time period. 
+
+Allows for rudimentary scalable EDA.
 */
 
 WITH const AS (
