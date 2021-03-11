@@ -22,7 +22,7 @@ COPY transactions (
     amount,
     status
     )
-FROM 'C:/Users/Public/wkw_transactions_table.csv'
+FROM 'C:/Users/Public/transactions_table.csv'
 DELIMITER ','
 CSV HEADER;
 
