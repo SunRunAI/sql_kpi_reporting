@@ -60,8 +60,8 @@ SELECT f.full_date,
        retention_month,
        num_acquired_users,
        num_cohort_actives,
-       (num_cohort_actives::DECIMAL
-       / num_acquired_users)
+       ROUND((num_cohort_actives::DECIMAL
+       / num_acquired_users), 2)
        AS retention
        FROM cohort_sizes AS s
        LEFT JOIN cohort_actives AS a

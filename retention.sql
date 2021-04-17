@@ -66,8 +66,10 @@ SELECT r.month,
        SUM(CASE WHEN cust_state = 'retained' THEN 1
            ELSE 0 END)
        AS num_retained,
+       ROUND(
        SUM(CASE WHEN cust_state = 'retained' THEN 1
-           ELSE 0 END)::DECIMAL / COUNT(DISTINCT r.user)
+       ELSE 0 END)::DECIMAL / COUNT(DISTINCT r.user),
+       2)
        AS retention_rate
        FROM retention AS r
        INNER JOIN full_dates AS f

@@ -4,7 +4,7 @@ ARPU decay by cohort
 
 -- Set constants to round off start/end dates to full months of data
 WITH const AS (
-    SELECT '2019-09-01'::DATE AS start_date,
+    SELECT '2020-10-01'::DATE AS start_date,
         DATE_TRUNC('month', NOW()) AS end_date
     ),
 -- Count league entries
@@ -86,13 +86,12 @@ SELECT f.full_date,
        sp.acquisition_month,
        sp.months_since_acq,
        num_acquired_users,
-       total_cohort_spend,
-       (total_cohort_spend::DECIMAL
-       / num_acquired_users)
-       AS spend_per_user
-       FROM cohort_sizes AS si
-       LEFT JOIN cohort_spend AS sp
-       ON si.acquisition_month = sp.acquisition_month
-       LEFT JOIN full_dates AS f
-       ON si.acquisition_month = f.month
-       ORDER BY acquisition_month, months_since_acq;
+       ROUND(total_cohort_spend, 2) AS total_cohort_revenue,
+       ROUND((total_cohort_spend::DECIMAL
+       / num_acquired_users), 2) AS revenue_per_user
+FROM cohort_sizes AS si
+     LEFT JOIN cohort_spend AS sp
+     ON si.acquisition_month = sp.acquisition_month
+     LEFT JOIN full_dates AS f
+     ON si.acquisition_month = f.month
+ORDER BY acquisition_month, months_since_acq;

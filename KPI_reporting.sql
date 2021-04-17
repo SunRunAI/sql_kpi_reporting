@@ -23,9 +23,37 @@ GROUP BY month
 ORDER BY month;
 
 --  Average revenue per user (ARPU) by month
-SELECT DATE_TRUNC('month', date) AS month, 
-SUM(amount) / COUNT(DISTINCT display_name) AS ARPU
-FROM transactions
+
+-- Count league entries
+WITH entries_counts AS (
+    SELECT league_id,
+        COUNT(*) AS num_entries
+    FROM transactions
+    WHERE transaction_type = 'League Entry'
+    GROUP BY league_id
+    ),
+-- Get total commission
+commissions AS (
+    SELECT league_id,
+        amount AS total_commission
+    FROM transactions
+    WHERE transaction_type = 'League Commission'
+    ),
+-- Calculate league commission per user
+commiss_per_user AS (
+    SELECT e.league_id,
+        total_commission::DECIMAL / num_entries
+        AS commission_per_entry
+    FROM entries_counts AS e
+    LEFT JOIN commissions AS c
+    ON e.league_id = c.league_id
+    )
+-- Get ARPU 
+SELECT DATE_TRUNC('month', t.date) AS month, 
+    SUM(c.commission_per_entry) / COUNT(DISTINCT t.display_name) AS ARPU
+FROM transactions AS t
+LEFT JOIN commiss_per_user AS c
+    ON t.league_id = c.league_id
 WHERE transaction_type = 'League Entry'
 GROUP BY month
 ORDER BY month;
@@ -38,6 +66,7 @@ in the last 30 day period.
 WITH const AS (
     SELECT current_date - 30 AS cutoff
     )
+
 SELECT RANK() 
        OVER(ORDER BY 
             SUM(amount) DESC) 

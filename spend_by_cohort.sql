@@ -59,8 +59,8 @@ SELECT f.full_date,
        sp.months_since_acq,
        num_acquired_users,
        total_cohort_spend,
-       (total_cohort_spend::DECIMAL
-       / num_acquired_users)
+       ROUND((total_cohort_spend::DECIMAL
+       / num_acquired_users), 2)
        AS spend_per_user
        FROM cohort_sizes AS si
        LEFT JOIN cohort_spend AS sp

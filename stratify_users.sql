@@ -64,14 +64,20 @@ full_dates AS (
 SELECT r.month,
        MIN(f.full_date) AS date,
        COUNT(DISTINCT r.user) AS num_users,
+       ROUND(
        SUM(CASE WHEN cust_state = 'new' THEN 1
-           ELSE 0 END)::DECIMAL / COUNT(DISTINCT r.user)
+           ELSE 0 END)::DECIMAL / COUNT(DISTINCT r.user),
+           2)
        AS new,
+       ROUND(
        SUM(CASE WHEN cust_state = 'retained' THEN 1
-           ELSE 0 END)::DECIMAL / COUNT(DISTINCT r.user)
+           ELSE 0 END)::DECIMAL / COUNT(DISTINCT r.user),
+           2)
        AS retained,
+       ROUND(
        SUM(CASE WHEN cust_state = 'returning' THEN 1
-           ELSE 0 END)::DECIMAL / COUNT(DISTINCT r.user)
+           ELSE 0 END)::DECIMAL / COUNT(DISTINCT r.user),
+           2)
        AS returning
        FROM retention AS r
        INNER JOIN full_dates AS f
